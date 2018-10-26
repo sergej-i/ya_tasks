@@ -18,6 +18,9 @@ setup(
     url='https://www.example.com/',
     author='Sergey I',
     author_email='yourname@example.com',
+    install_requires=[
+        'jsonschema==2.6.0'
+    ],
     classifiers=[
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python',
