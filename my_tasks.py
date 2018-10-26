@@ -14,7 +14,8 @@ def multi_print(msg, count=10):
     return '\n'.join(msg for _ in range(count))
 
 
-class Multiply(tasks.BaseTaskV2):
+#class Multiply(tasks.BaseTaskV2):
+class Multiply(tasks.BaseTask):
     name = 'mult'
     json_schema = {'type': 'object',
                    'properties': {

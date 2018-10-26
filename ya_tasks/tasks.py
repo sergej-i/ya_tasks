@@ -3,9 +3,11 @@ Homework.
 Task executor.
 """
 
+import sys
 import argparse
-import json
 from functools import wraps
+from pprint import pprint
+import json
 import jsonschema
 
 #constant
@@ -19,6 +21,11 @@ class TaskException(Exception):
 
 class TaskExceptionWrongParameters(TaskException):
     """ An exception is thrown when the parameters for the task
+        are incorrectly specified. """
+
+
+class TaskExceptionWrongClassStruct(TaskException):
+    """ An exception is thrown when the subclass for the task
         are incorrectly specified. """
 
 
@@ -65,6 +72,13 @@ class BaseTask:
         super().__init_subclass__()
         TaskStorage.add(cls.name, cls, TASK_EXEC_BASE_CLASS, cls.json_schema)
 
+    def run(self, *args, **kwargs): #pylint: disable=W0613
+        """ this method must be implemented """
+        raise TaskExceptionWrongClassStruct(
+            "Class '{0}': Method 'run' not implemented."
+            .format(type(self).__name__))
+
+
 
 class BaseTaskMeta(type):
     """ metaclass for registering a task defined by class
@@ -81,6 +95,12 @@ class BaseTaskMeta(type):
 
 class BaseTaskV2(metaclass=BaseTaskMeta):
     """ base class for setting the task (for python < 3.6) """
+
+    def run(self, *args, **kwargs): #pylint: disable=W0613
+        """ this method must be implemented """
+        raise TaskExceptionWrongClassStruct(
+            "Class '{0}': Method 'run' not implemented."
+            .format(type(self).__name__))
 
 
 def task(name, json_schema):
@@ -108,21 +128,30 @@ def get_cmd_args():
     try:
         args = parser.parse_args()
         args.params = json.loads(args.params)
-    except ():
-        raise TaskExceptionWrongParameters
+    except (json.JSONDecodeError, TypeError) as err:
+        raise TaskExceptionWrongParameters("Wrong parameters: ", err)
     return args
 
 
 def run_cli():
     """ perform a task using command line parameters """
-    args = get_cmd_args()
-    if args.task_name in TaskStorage.tasks.keys():
-        task_executor, task_type, task_schema = TaskStorage.tasks[args.task_name]
-        if TaskStorage.check_schema(args.params, task_schema):
-            if task_type == TASK_EXEC_BASE_CLASS:
-                print(task_executor().run(**args.params))
-            elif task_type == TASK_EXEC_FUNCTION:
-                print(task_executor(**args.params))
+    try:
+        args = get_cmd_args()
+        if args.task_name in TaskStorage.tasks.keys():
+            task_executor, task_type, task_schema = TaskStorage.tasks[args.task_name]
+            if TaskStorage.check_schema(args.params, task_schema):
+                if task_type == TASK_EXEC_BASE_CLASS:
+                    print(task_executor().run(**args.params))
+                elif task_type == TASK_EXEC_FUNCTION:
+                    print(task_executor(**args.params))
+            else:
+                print("parameters do not match the task '{0}'".format(args.task_name))
+                pprint(task_schema)
+        else:
+            print("no task with that name: ", args.task_name)
+    except TaskExceptionWrongParameters as err:
+        print(err)
+        print(sys.argv)
 
 
 if __name__ == '__main__':
