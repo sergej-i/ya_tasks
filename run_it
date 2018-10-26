@@ -1,0 +1,5 @@
+echo 'multiprint:'
+python my_tasks.py multiprint --params '{"msg": "hello", "count": 2}'
+echo ''
+echo 'mult:'
+python my_tasks.py mult --params '{"operands": [3, 2, 8]}'
