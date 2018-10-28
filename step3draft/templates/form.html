@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<script>
+function getFormData($form){
+    var unindexed_array = $form.serializeArray();
+    var indexed_array = {};
+
+    $.map(unindexed_array, function(n, i){
+        indexed_array[n['name']] =  n['value'];
+        if ( n['name'] === 'params' ) {
+             var js = JSON.parse(n['value']); // check params json (catch exception)
+        }
+    });
+
+    return indexed_array;
+}
+</script>
+
+<style>
+form > div {
+ margin: 0.3em;
+}
+label {
+ width: 50%;
+ display: inline-block;
+ padding-left: 1em;
+}
+input {
+ width: 45%;
+}
+</style>
+{% endblock %}
+
+{% block body %}
+        <form id='tasks_params_form' method='post' action="/result">
+            <div><input name='task_name' value='mult' /><label for='task_name'>Task name*</label></div>
+            <div><input name='params' value='{"operands": [3, 2, 8]}' /><label for='params'>Params (JSON)*</label></div>
+            <div><input type='submit' name='submit'/><label for='params'>*Required fields</label></div>
+        </form>
+        <div id='rc'>
+            waiting for submit...
+        </div>
+{% endblock %}
+
+{% block jsfoot %}
+<script>
+$(document).ready(function(){
+    $frm = $('#tasks_params_form');
+    $frm.on('submit', function(event){
+        try {
+            data = getFormData($frm);
+        } catch {
+            event.preventDefault();
+            alert('wrong params');
+            return false;
+        }
+        console.log(data);
+        console.log($frm.attr('action'));
+
+        $.ajax({
+          type: "POST",
+          url: $frm.attr('action'),
+          data: data,
+          success: function(data) {
+                console.log('ok', data);
+                $('#rc').html(data);
+            }
+          //dataType: 'json'
+        });
+
+        return false;
+    });
+});
+</script>
+
+{% endblock %}

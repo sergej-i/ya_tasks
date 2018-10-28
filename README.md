@@ -3,6 +3,7 @@
 Ya-tasks is a homework.
 - [x] Step 1.
 - [x] Step 2.
+- [ ] Step 3. Draft in 'step3draft' subdir
 - [ ] ...
 
 Tested for:
